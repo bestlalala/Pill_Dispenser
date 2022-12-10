@@ -87,14 +87,9 @@ class StartPage(tk.Frame):
 # 2. 사용자 초기 설정 프레임
 class UserSetting(tk.Frame):
 
-    def select_bottle(self):
-        global bottle_num
-        bottle_num = self.radio.get()
-        print("선택된 약통: ", str(bottle_num))
-
     def create_user(self):
         global user_cnt
-        pill_info = PillInfo(self.pill_name_input.get(), bottle_num, self.pill_cnt.get())
+        pill_info = PillInfo(self.pill_name_input.get(), self.radio.get(), self.pill_cnt.get())
         user_cnt += 1
         UserInfo(user_cnt, self.name_input.get(), pill_info)
         self.controller.show_frame("PutPill")
@@ -120,10 +115,10 @@ class UserSetting(tk.Frame):
         bottle_label = tk.Label(self, text="약통 선택: ")
         bottle_label.pack()
 
-        self.radio = tk.IntVar()
-        self.one = tk.Radiobutton(self, text="1번", variable=self.radio, value=1, command=self.select_bottle)
+        self.radio = tk.IntVar(self)
+        self.one = tk.Radiobutton(self, text="1번", variable=self.radio, value=1)
         self.one.pack()
-        self.two = tk.Radiobutton(self, text="2번", variable=self.radio, value=2, command=self.select_bottle)
+        self.two = tk.Radiobutton(self, text="2번", variable=self.radio, value=2)
         self.two.pack()
 
         # 약 복용량 입력
@@ -172,6 +167,8 @@ class AlarmSetting(tk.Frame):
 
         self.label = tk.Label(self, text="알람 시간을 입력하세요.")
         self.label.pack()
+
+
 
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로",
