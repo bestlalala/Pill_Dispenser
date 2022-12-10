@@ -166,29 +166,29 @@ class AlarmSetting(tk.Frame):
         self.controller = controller
 
         self.label = tk.Label(self, text="알람 시간을 입력하세요.")
-        self.label.pack()
+        self.label.grid(row=0, column=0, columnspan=4)
 
         # 알람 시간 입력
-        self.alarm_hr = tk.Spinbox(self, from_=0, to=23)
-        self.alarm_hr.pack()
-        self.alarm_mn = tk.Spinbox(self, from_=0, to=59)
-        self.alarm_mn.pack()
+        self.alarm_hr = tk.Spinbox(self, from_=0, to=23, width=10)
+        self.alarm_hr.grid(row=1, column=0)
+        self.alarm_mn = tk.Spinbox(self, from_=0, to=59, width=10)
+        self.alarm_mn.grid(row=1, column=1)
 
         self.alarm_time_label = tk.Label(self, text="알람 시간")
-        self.alarm_time_label.pack()
+        self.alarm_time_label.grid(row=2, column=0, columnspan=2)
 
-        self.sleep_hr = tk.Spinbox(self, from_=0, to=23)
-        self.sleep_hr.pack()
-        self.sleep_mn = tk.Spinbox(self, from_=0, to=59)
-        self.sleep_mn.pack()
+        self.sleep_hr = tk.Spinbox(self, from_=0, to=23, width=10)
+        self.sleep_hr.grid(row=1, column=3)
+        self.sleep_mn = tk.Spinbox(self, from_=0, to=59, width=10)
+        self.sleep_mn.grid(row=1, column=4)
 
         self.sleep_time_label = tk.Label(self, text="취침 시간")
-        self.sleep_time_label.pack()
+        self.sleep_time_label.grid(row=2, column=2, columnspan=2)
 
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로",
                              command=lambda: controller.show_frame("AlarmSetting"))
-        next_btn.pack(side="bottom")
+        next_btn.place(x=600, y=300)
 
 
 # 5. 입력한 알람 설정 정보 확인 페이지
