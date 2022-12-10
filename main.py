@@ -34,7 +34,7 @@ class DispenserApp(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, UserSetting, PutPill, AlarmSetting):
+        for F in (StartPage, UserSetting, PutPill, AlarmSetting, AlarmCheck):
             page_name = F.__name__  # 각 class의 이름을 가져와서 저장
             frame = F(parent=container, controller=self)  # class의 _init_실행
             self.frames[page_name] = frame  # 각 class별 저장소에 각 class별 frame의 내용 저장
@@ -187,11 +187,16 @@ class AlarmSetting(tk.Frame):
 
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로",
-                             command=lambda: controller.show_frame("AlarmSetting"))
+                             command=lambda: controller.show_frame("AlarmCheck"))
         next_btn.place(x=600, y=300)
 
 
 # 5. 입력한 알람 설정 정보 확인 페이지
+class AlarmCheck(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        self.controller = controller
+
 
 # 6. 설정 완료 알림 페이지
 
