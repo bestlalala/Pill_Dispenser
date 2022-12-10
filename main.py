@@ -1,10 +1,12 @@
 import tkinter as tk
-from threading import Timer
 import time
+from UserInfo import *
 
 window = tk.Tk()
 global now
 global bottle_num
+global user_cnt
+user_cnt = 0
 
 # # 시계
 # def clock():
@@ -58,6 +60,13 @@ class DispenserApp(tk.Tk):
 # 1. 시계 프레임
 class StartPage(tk.Frame):
 
+    # 시계
+    def clock(self):
+        global now
+        now = time.strftime("%H:%M:%S")
+        self.clock_width.config(text=now)
+        self.clock_width.after(1000, self.clock)  # .after(지연시간{ms}, 실행함수)
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller  # controller는 DispenserApp클래스를 가리킴
@@ -74,13 +83,6 @@ class StartPage(tk.Frame):
                               command=lambda: controller.show_frame("UserSetting"))
         start_btn.pack()
 
-    # 시계
-    def clock(self):
-        global now
-        now = time.strftime("%H:%M:%S")
-        self.clock_width.config(text=now)
-        self.clock_width.after(1000, self.clock)  # .after(지연시간{ms}, 실행함수)
-
 
 # 2. 사용자 초기 설정 프레임
 class UserSetting(tk.Frame):
@@ -90,8 +92,11 @@ class UserSetting(tk.Frame):
         bottle_num = self.radio.get()
         print("선택된 약통: ", str(bottle_num))
 
-    def showInput(self):
-        print(self.name_input.get())
+    def create_user(self):
+        global user_cnt
+        pill_info = PillInfo(self.pill_name_input.get(), bottle_num, self.pill_cnt.get())
+        user_cnt += 1
+        UserInfo(user_cnt, self.name_input.get(), pill_info)
         self.controller.show_frame("PutPill")
 
     def __init__(self, parent, controller):
@@ -132,7 +137,7 @@ class UserSetting(tk.Frame):
                              command=lambda: controller.show_frame("StartPage"))
         prev_btn.pack(side="bottom")
         # 다음 버튼
-        next_btn = tk.Button(self, text="다음으로", command=self.showInput)
+        next_btn = tk.Button(self, text="다음으로", command=self.create_user)
         next_btn.pack(side="bottom")
 
 
