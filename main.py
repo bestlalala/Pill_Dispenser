@@ -99,41 +99,41 @@ class UserSetting(tk.Frame):
         self.controller = controller
 
         self.name_label = tk.Label(self, text="사용자 이름: ")
-        self.name_label.pack(pady=10)
-
+        self.name_label.grid(row=0, column=0)
         self.name_input = tk.Entry(self, width=50)
-        self.name_input.pack(pady=10)
+        self.name_input.grid(row=0, column=1, columnspan=2)
 
         self.pill_label = tk.Label(self, text="복용할 약 이름: ")
-        self.pill_label.pack(pady=10)
+        self.pill_label.grid(row=1, column=0)
 
         # 약 이름 입력받기
         self.pill_name_input = tk.Entry(self, width=50)
-        self.pill_name_input.pack(pady=10)
+        self.pill_name_input.grid(row=1, column=1, columnspan=2)
 
         # 약통 선택
         bottle_label = tk.Label(self, text="약통 선택: ")
-        bottle_label.pack()
+        bottle_label.grid(row=2, column=0)
 
         self.radio = tk.IntVar(self)
         self.one = tk.Radiobutton(self, text="1번", variable=self.radio, value=1)
-        self.one.pack()
+        self.one.grid(row=2, column=1)
         self.two = tk.Radiobutton(self, text="2번", variable=self.radio, value=2)
-        self.two.pack()
+        self.two.grid(row=2, column=2)
 
         # 약 복용량 입력
         self.pill_cnt_label = tk.Label(self, text="1회 복용량: ")
-        self.pill_cnt_label.pack(pady=10)
+        self.pill_cnt_label.grid(row=3, column=0)
         self.pill_cnt = tk.Spinbox(self, from_=1, to=5)
-        self.pill_cnt.pack()
+        self.pill_cnt.grid(row=3, column=1, columnspan=2)
 
         # 이전 버튼
         prev_btn = tk.Button(self, text="이전으로",
                              command=lambda: controller.show_frame("StartPage"))
-        prev_btn.pack(side="bottom")
+        prev_btn.grid(row=7, column=0)
+
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로", command=self.create_user)
-        next_btn.pack(side="bottom")
+        next_btn.grid(row=7, column=1)
 
 
 # 3. 약을 넣어주세요
@@ -150,12 +150,12 @@ class PutPill(tk.Frame):
         # 이전 버튼
         prev_btn = tk.Button(self, text="취소",
                              command=lambda: controller.show_frame("UserSetting"))
-        prev_btn.pack()
+        prev_btn.pack(side="bottom", anchor="w")
 
         # 다음 버튼
         next_btn = tk.Button(self, text="확인",
                              command=lambda: controller.show_frame("AlarmSetting"))
-        next_btn.pack(side="bottom")
+        next_btn.pack(side="bottom", anchor="e")
 
 
 # 4. 알람 설정 페이지
@@ -168,7 +168,22 @@ class AlarmSetting(tk.Frame):
         self.label = tk.Label(self, text="알람 시간을 입력하세요.")
         self.label.pack()
 
+        # 알람 시간 입력
+        self.alarm_hr = tk.Spinbox(self, from_=0, to=23)
+        self.alarm_hr.pack()
+        self.alarm_mn = tk.Spinbox(self, from_=0, to=59)
+        self.alarm_mn.pack()
 
+        self.alarm_time_label = tk.Label(self, text="알람 시간")
+        self.alarm_time_label.pack()
+
+        self.sleep_hr = tk.Spinbox(self, from_=0, to=23)
+        self.sleep_hr.pack()
+        self.sleep_mn = tk.Spinbox(self, from_=0, to=59)
+        self.sleep_mn.pack()
+
+        self.sleep_time_label = tk.Label(self, text="취침 시간")
+        self.sleep_time_label.pack()
 
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로",
