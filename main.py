@@ -7,6 +7,8 @@ global now
 global bottle_num
 global user_cnt
 user_cnt = 0
+global pill_info
+global new_user
 
 # # 시계
 # def clock():
@@ -89,9 +91,11 @@ class UserSetting(tk.Frame):
 
     def create_user(self):
         global user_cnt
+        global new_user
+        global pill_info
         pill_info = PillInfo(self.pill_name_input.get(), self.radio.get(), self.pill_cnt.get())
         user_cnt += 1
-        UserInfo(user_cnt, self.name_input.get(), pill_info)
+        new_user = UserInfo(user_cnt, self.name_input.get(), pill_info)
         self.controller.show_frame("PutPill")
 
     def __init__(self, parent, controller):
@@ -161,6 +165,12 @@ class PutPill(tk.Frame):
 # 4. 알람 설정 페이지
 class AlarmSetting(tk.Frame):
 
+    def setAlarm(self):
+        new_alarm = AlarmInfo(self.alarm_hr.get(), self.alarm_mn.get(), self.sleep_hr.get(), self.sleep_mn.get())
+        pill_info.setAlarm(new_alarm)
+        AlarmCheck.getAlarmInfo(self.controller.frames["AlarmCheck"], pillInfo=pill_info)
+        self.controller.show_frame("AlarmCheck")
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -169,34 +179,63 @@ class AlarmSetting(tk.Frame):
         self.label.grid(row=0, column=0, columnspan=4)
 
         # 알람 시간 입력
-        self.alarm_hr = tk.Spinbox(self, from_=0, to=23, width=10)
+        self.alarm_hr = tk.Spinbox(self, from_=0, to=23, width=10, format="%02.0f")
         self.alarm_hr.grid(row=1, column=0)
-        self.alarm_mn = tk.Spinbox(self, from_=0, to=59, width=10)
+        self.alarm_mn = tk.Spinbox(self, from_=0, to=59, width=10, format='%02.0f')
         self.alarm_mn.grid(row=1, column=1)
 
         self.alarm_time_label = tk.Label(self, text="알람 시간")
         self.alarm_time_label.grid(row=2, column=0, columnspan=2)
 
-        self.sleep_hr = tk.Spinbox(self, from_=0, to=23, width=10)
+        self.sleep_hr = tk.Spinbox(self, from_=0, to=23, width=10, format="%02.0f")
         self.sleep_hr.grid(row=1, column=3)
-        self.sleep_mn = tk.Spinbox(self, from_=0, to=59, width=10)
+        self.sleep_mn = tk.Spinbox(self, from_=0, to=59, width=10, format="%02.0f")
         self.sleep_mn.grid(row=1, column=4)
 
         self.sleep_time_label = tk.Label(self, text="취침 시간")
         self.sleep_time_label.grid(row=2, column=2, columnspan=2)
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="다음으로",
-                             command=lambda: controller.show_frame("AlarmCheck"))
+        next_btn = tk.Button(self, text="다음으로", command=self.setAlarm)
         next_btn.place(x=600, y=300)
 
 
 # 5. 입력한 알람 설정 정보 확인 페이지
 class AlarmCheck(tk.Frame):
+
+    def getAlarmInfo(self, pillInfo):
+        alarm_time = pillInfo.alarm.alarm_hr + ":" + pillInfo.alarm.alarm_mn
+        sleep_time = pillInfo.alarm.sleep_hr + ":" + pillInfo.alarm.sleep_mn
+        self.alarm_time.config(text=alarm_time)
+        self.sleep_time.config(text=sleep_time)
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
+        self.label = tk.Label(self, text="입력한 정보를 확인하세요.")
+        self.label.grid(row=0, column=0, columnspan=4)
+
+        # 알람 시간 입력
+        alarm_time = "00:00"
+        sleep_time = "00:00"
+        self.alarm_time = tk.Label(self, text=alarm_time)
+        self.alarm_time.grid(row=1, column=0)
+        self.alarm_time_label = tk.Label(self, text="알람 시간")
+        self.alarm_time_label.grid(row=2, column=0)
+
+        self.sleep_time = tk.Label(self, text=sleep_time)
+        self.sleep_time.grid(row=1, column=1)
+        self.sleep_time_label = tk.Label(self, text="취침 시간")
+        self.sleep_time_label.grid(row=2, column=1)
+
+        self.label2 = tk.Label(self, text="알람 설정 완료!\n복용 시간이 되면 알려드릴게요:)")
+        self.label2.grid(row=3, column=0, columnspan=2)
+
+        # 다음 버튼
+        next_btn = tk.Button(self, text="확인",
+                             command=lambda: controller.show_frame("StartPage"))
+        next_btn.place(x=600, y=300)
 
 # 6. 설정 완료 알림 페이지
 
