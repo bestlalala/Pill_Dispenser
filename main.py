@@ -1,13 +1,17 @@
 import tkinter as tk
+import tkinter.ttk
 import time
+
+import UserInfo
 from UserInfo import *
 
 global now
 global bottle_num
 global user_cnt
-user_cnt = 0
+user_cnt = 1
 global pill_info
 global new_user
+info_list = []
 
 # main window
 class DispenserApp(tk.Tk):
@@ -59,8 +63,12 @@ class StartPage(tk.Frame):
         self.clock_width.config(text=now)
         self.clock_width.after(1000, self.clock)  # .after(지연시간{ms}, 실행함수)
 
+    def update_user(self, user_info):
+        self.user_info_table.insert('', 'end', text=user_cnt, values=user_info)
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        self.user_info_table = None
         self.controller = controller  # controller는 DispenserApp클래스를 가리킴
 
         self.clock_width = tk.Label(self, font=("Times", 24, "bold"), text="")
@@ -71,7 +79,34 @@ class StartPage(tk.Frame):
         label.pack()
         label.place(x=300, y=200)
 
-        start_btn = tk.Button(self, text="시작하기", overrelief="solid", width=10,
+        self.user_info_table = tk.ttk.Treeview(self, columns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간"],
+                                               displaycolumns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간"])
+
+        self.user_info_table.column("#0", width=100, anchor="center")
+        self.user_info_table.heading("#0", text="index")
+
+        self.user_info_table.column("#1", width=100, anchor="center")
+        self.user_info_table.heading("#1", text="사용자 이름")
+
+        self.user_info_table.column("#2", width=70, anchor="center")
+        self.user_info_table.heading("#2", text="약 이름")
+
+        self.user_info_table.column("#3", width=70, anchor="center")
+        self.user_info_table.heading("#3", text="복용 개수")
+
+        self.user_info_table.column("#4", width=70, anchor="center")
+        self.user_info_table.heading("#4", text="알람 시간")
+
+        self.user_info_table.column("#5", width=70, anchor="center")
+        self.user_info_table.heading("#5", text="취침 시간")
+
+        # 표에 데이터 삽입
+        for i in range(len(info_list)):
+            self.user_info_table.insert('', 'end', text=i+1, values=info_list[i])
+
+        self.user_info_table.pack()
+
+        start_btn = tk.Button(self, text="사용자 추가", overrelief="solid", width=10,
                               command=lambda: controller.show_frame("UserSetting"))
         start_btn.pack()
 
@@ -194,10 +229,20 @@ class AlarmSetting(tk.Frame):
 class AlarmCheck(tk.Frame):
 
     def getAlarmInfo(self, pillInfo):
-        alarm_time = pillInfo.alarm.alarm_hr + ":" + pillInfo.alarm.alarm_mn
-        sleep_time = pillInfo.alarm.sleep_hr + ":" + pillInfo.alarm.sleep_mn
-        self.alarm_time.config(text=alarm_time)
-        self.sleep_time.config(text=sleep_time)
+        # alarm_time = pillInfo.alarm.alarm_hr + ":" + pillInfo.alarm.alarm_mn
+        # sleep_time = pillInfo.alarm.sleep_hr + ":" + pillInfo.alarm.sleep_mn
+        self.alarm_time.config(text=pillInfo.alarm.alarm_time)
+        self.sleep_time.config(text=pillInfo.alarm.sleep_time)
+
+    # 사용자 보여주기
+    def addUser(self):
+        # 표에 삽입될 데이터
+        # appendList()
+        new_user_info = (new_user.username, new_user.pillAlarm.pillname, new_user.pillAlarm.pill_cnt,
+                         new_user.pillAlarm.alarm.alarm_time, new_user.pillAlarm.alarm.sleep_time)
+        info_list.append(new_user_info)
+        StartPage.update_user(self.controller.frames["StartPage"], new_user_info)
+        self.controller.show_frame("StartPage")
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -223,8 +268,7 @@ class AlarmCheck(tk.Frame):
         self.label2.grid(row=3, column=0, columnspan=2)
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="확인",
-                             command=lambda: controller.show_frame("StartPage"))
+        next_btn = tk.Button(self, text="확인", command=self.addUser)
         next_btn.place(x=600, y=300)
 
 # 6. 설정 완료 알림 페이지
@@ -232,5 +276,11 @@ class AlarmCheck(tk.Frame):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    user1_alarm = AlarmInfo("20", "00", "23", "30")
+    user1_pill_info = PillInfo("빈혈약", 1, 1)
+    user1_pill_info.setAlarm(user1_alarm)
+    user1 = UserInfo(1, "이연수", user1_pill_info)
+    info_list.append((user1.username, user1.pillAlarm.pillname, user1.pillAlarm.pill_cnt,
+                      user1.pillAlarm.alarm.alarm_time, user1.pillAlarm.alarm.sleep_time))
     app = DispenserApp()
     app.mainloop()
