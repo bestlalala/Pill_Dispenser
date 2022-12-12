@@ -2,21 +2,12 @@ import tkinter as tk
 import time
 from UserInfo import *
 
-window = tk.Tk()
 global now
 global bottle_num
 global user_cnt
 user_cnt = 0
 global pill_info
 global new_user
-
-# # 시계
-# def clock():
-#     global now
-#     now = time.strftime("%H:%M:%S")
-#     StartPage.clock_width.config(text=now)
-#     StartPage.clock_width.after(1000, clock) # .after(지연시간{ms}, 실행함수)
-
 
 # main window
 class DispenserApp(tk.Tk):
@@ -49,7 +40,6 @@ class DispenserApp(tk.Tk):
         self.show_frame("StartPage")
 
     def show_frame(self, page_name):
-        # "Show a frame for the given page name"
         frame = self.frames[page_name]
         frame.tkraise()  # 요청된 page_name에 맞는 frame을 찾아서 tkraise() 함수로 맨 위에 올려 화면에 보이게 함.
 
