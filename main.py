@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.ttk
+import tkinter.messagebox
 import time
 
 import UserInfo
@@ -12,6 +13,7 @@ user_cnt = 1
 global pill_info
 global new_user
 info_list = []
+
 
 # main window
 class DispenserApp(tk.Tk):
@@ -66,6 +68,12 @@ class StartPage(tk.Frame):
     def update_user(self, user_info):
         self.user_info_table.insert('', 'end', text=user_cnt, values=user_info)
 
+    def click_user(self, event):
+        selectedUser = self.user_info_table.focus()
+        getValue = self.user_info_table.item(selectedUser).get('values')
+        msg = getValue[0] + " 님의 " + getValue[1] + " 복용 시간은\n" + getValue[3] + " 입니다.\n" + "지금 바로 복용하고 알람을 끄시겠습니까?"
+        tk.messagebox.askokcancel("약 복용- 알람시간 아닐 때", msg)
+
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.user_info_table = None
@@ -104,6 +112,7 @@ class StartPage(tk.Frame):
         for i in range(len(info_list)):
             self.user_info_table.insert('', 'end', text=i+1, values=info_list[i])
 
+        self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
         self.user_info_table.pack()
 
         start_btn = tk.Button(self, text="사용자 추가", overrelief="solid", width=10,
