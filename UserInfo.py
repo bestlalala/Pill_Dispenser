@@ -10,6 +10,7 @@ class UserInfo:
         print("user info 생성: ", self.username, self.pillAlarm)
         global user_list
         user_list.append(self)
+        print("user_list: ", user_list)
 
 
 class PillInfo:
@@ -18,6 +19,7 @@ class PillInfo:
         self.pillname = pillname
         self.bottle_num = bottle_num
         self.pill_cnt = pill_cnt
+        self.done = False   # 복용 여부
         print("pill info 생성: ", self.pillname, self.bottle_num, pill_cnt)
 
     def setAlarm(self, alarm_info):

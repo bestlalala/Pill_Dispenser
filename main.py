@@ -72,7 +72,17 @@ class StartPage(tk.Frame):
         selectedUser = self.user_info_table.focus()
         getValue = self.user_info_table.item(selectedUser).get('values')
         msg = getValue[0] + " 님의 " + getValue[1] + " 복용 시간은\n" + getValue[3] + " 입니다.\n" + "지금 바로 복용하고 알람을 끄시겠습니까?"
-        tk.messagebox.askokcancel("약 복용- 알람시간 아닐 때", msg)
+        result = tk.messagebox.askokcancel("약 복용- 알람시간 아닐 때", msg)
+        if result:
+            for i in range(len(user_list)):
+                if user_list[i].username == getValue[0]:
+                    user_list[i].done = True    # 복용 여부 True로 설정
+                    # 표 업데이트
+                    getValue[5] = True
+                    self.user_info_table.item(selectedUser, values=getValue)
+            print("예: 알람 취소, 근접 센서 활성화")
+        else:
+            print("아니오: 취소")
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -87,19 +97,19 @@ class StartPage(tk.Frame):
         label.pack()
         label.place(x=300, y=200)
 
-        self.user_info_table = tk.ttk.Treeview(self, columns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간"],
-                                               displaycolumns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간"])
+        self.user_info_table = tk.ttk.Treeview(self, columns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간", "복용 여부"],
+                                               displaycolumns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간", "복용 여부"])
 
-        self.user_info_table.column("#0", width=100, anchor="center")
+        self.user_info_table.column("#0", width=50, anchor="center")
         self.user_info_table.heading("#0", text="index")
 
         self.user_info_table.column("#1", width=100, anchor="center")
         self.user_info_table.heading("#1", text="사용자 이름")
 
-        self.user_info_table.column("#2", width=70, anchor="center")
+        self.user_info_table.column("#2", width=100, anchor="center")
         self.user_info_table.heading("#2", text="약 이름")
 
-        self.user_info_table.column("#3", width=70, anchor="center")
+        self.user_info_table.column("#3", width=50, anchor="center")
         self.user_info_table.heading("#3", text="복용 개수")
 
         self.user_info_table.column("#4", width=70, anchor="center")
@@ -108,9 +118,12 @@ class StartPage(tk.Frame):
         self.user_info_table.column("#5", width=70, anchor="center")
         self.user_info_table.heading("#5", text="취침 시간")
 
+        self.user_info_table.column("#6", width=70, anchor="center")
+        self.user_info_table.heading("#6", text="복용 여부")
+
         # 표에 데이터 삽입
         for i in range(len(info_list)):
-            self.user_info_table.insert('', 'end', text=i+1, values=info_list[i])
+            self.user_info_table.insert('', 'end', text=i + 1, values=info_list[i])
 
         self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
         self.user_info_table.pack()
@@ -139,7 +152,7 @@ class UserSetting(tk.Frame):
         self.name_label = tk.Label(self, text="사용자 이름: ")
         self.name_label.grid(row=0, column=0)
         self.name_input = tk.Entry(self, width=50)
-        self.name_input.grid(row=0, column=1, columnspan=2)
+        self.name_input.grid(row=0, column=1, columnspan=2, sticky='ew')
 
         self.pill_label = tk.Label(self, text="복용할 약 이름: ")
         self.pill_label.grid(row=1, column=0)
@@ -171,7 +184,7 @@ class UserSetting(tk.Frame):
 
         # 다음 버튼
         next_btn = tk.Button(self, text="다음으로", command=self.create_user)
-        next_btn.grid(row=7, column=1)
+        next_btn.grid(row=7, column=2)
 
 
 # 3. 약을 넣어주세요
@@ -248,7 +261,7 @@ class AlarmCheck(tk.Frame):
         # 표에 삽입될 데이터
         # appendList()
         new_user_info = (new_user.username, new_user.pillAlarm.pillname, new_user.pillAlarm.pill_cnt,
-                         new_user.pillAlarm.alarm.alarm_time, new_user.pillAlarm.alarm.sleep_time)
+                         new_user.pillAlarm.alarm.alarm_time, new_user.pillAlarm.alarm.sleep_time, new_user.pillAlarm.done)
         info_list.append(new_user_info)
         StartPage.update_user(self.controller.frames["StartPage"], new_user_info)
         self.controller.show_frame("StartPage")
@@ -280,6 +293,7 @@ class AlarmCheck(tk.Frame):
         next_btn = tk.Button(self, text="확인", command=self.addUser)
         next_btn.place(x=600, y=300)
 
+
 # 6. 설정 완료 알림 페이지
 
 
@@ -290,6 +304,6 @@ if __name__ == '__main__':
     user1_pill_info.setAlarm(user1_alarm)
     user1 = UserInfo(1, "이연수", user1_pill_info)
     info_list.append((user1.username, user1.pillAlarm.pillname, user1.pillAlarm.pill_cnt,
-                      user1.pillAlarm.alarm.alarm_time, user1.pillAlarm.alarm.sleep_time))
+                      user1.pillAlarm.alarm.alarm_time, user1.pillAlarm.alarm.sleep_time, user1.pillAlarm.done))
     app = DispenserApp()
     app.mainloop()
