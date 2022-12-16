@@ -3,14 +3,17 @@ user_list = list()
 
 
 class UserInfo:
+
     def __init__(self, id, username, PillInfo):
         self.id = id
         self.username = username
         self.pillAlarm = PillInfo
         print("user info 생성: ", self.username, self.pillAlarm)
-        global user_list
-        user_list.append(self)
-        print("user_list: ", user_list)
+
+    # def appendList(self):
+    #     global user_list
+    #     user_list.append(self)
+    #     print("user_list: ", user_list)
 
 
 class PillInfo:
