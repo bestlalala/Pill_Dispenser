@@ -84,9 +84,15 @@ class StartPage(tk.Frame):
                         # 약 복용
                         print("약 복용")
                         user.pillAlarm.done = True
-                    else:
-                        # 약 복용 미루기
-                        print("약 복용 미루기")
+                elif user.pillAlarm.alarm.sleep_time == now:
+                    alarm_condition.wait(10)
+                    msg = "현재 시각 : " + now + "\n" + user.username + " 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!\n주무시기 전에 드세요."
+                    result = tk.messagebox.askyesno("알람 울리기", msg)
+                    alarm_condition.release()
+                    if result:
+                        # 약 복용
+                        print("잠자기 전 약 복용")
+                        user.pillAlarm.done = True
                 else:
                     flag = False
 
