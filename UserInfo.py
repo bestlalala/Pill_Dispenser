@@ -10,11 +10,6 @@ class UserInfo:
         self.pillAlarm = PillInfo
         print("user info 생성: ", self.username, self.pillAlarm)
 
-    # def appendList(self):
-    #     global user_list
-    #     user_list.append(self)
-    #     print("user_list: ", user_list)
-
 
 class PillInfo:
     def __init__(self, pillname, bottle_num, pill_cnt):
