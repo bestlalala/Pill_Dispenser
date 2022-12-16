@@ -57,6 +57,13 @@ class DispenserApp(tk.Tk):
 
 # 스택으로 쌓아서 보여줄 프레임 클래스들
 
+def getInfoTuple(user):
+    user_info = (user.username, user.pillAlarm.pillname, user.pillAlarm.pill_cnt,
+                 user.pillAlarm.alarm.alarm_time, user.pillAlarm.alarm.sleep_time,
+                 user.pillAlarm.done)
+    return user_info
+
+
 # 1. 시계 프레임
 class StartPage(tk.Frame):
 
@@ -77,13 +84,15 @@ class StartPage(tk.Frame):
                     global flag
                     flag = True
                     alarm_condition.wait(10)
-                    msg = "현재 시각 : " + now + "\n" + user.username +" 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!"
+                    msg = "현재 시각 : " + now + "\n" + user.username + " 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!"
                     result = tk.messagebox.askyesno("알람 울리기", msg)
                     alarm_condition.release()
                     if result:
                         # 약 복용
                         print("약 복용")
                         user.pillAlarm.done = True
+                        self.user_info_table.item(str(i), values=getInfoTuple(user))
+
                 elif user.pillAlarm.alarm.sleep_time == now:
                     alarm_condition.wait(10)
                     msg = "현재 시각 : " + now + "\n" + user.username + " 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!\n주무시기 전에 드세요."
@@ -93,11 +102,14 @@ class StartPage(tk.Frame):
                         # 약 복용
                         print("잠자기 전 약 복용")
                         user.pillAlarm.done = True
+                        self.user_info_table.item(str(i), values=getInfoTuple(user))
+
                 else:
                     flag = False
+                alarm_condition.acquire()
 
     def update_user(self, user_info):
-        self.user_info_table.insert('', 'end', text=user_cnt, values=user_info)
+        self.user_info_table.insert('', 'end', text=str(user_cnt), values=user_info, iid=str(user_cnt - 1))
 
     def click_user(self, event):
         selectedUser = self.user_info_table.focus()
@@ -107,7 +119,7 @@ class StartPage(tk.Frame):
         if result:
             for i in range(len(user_list)):
                 if user_list[i].username == getValue[0]:
-                    user_list[i].pillAlarm.done = True    # 복용 여부 True로 설정
+                    user_list[i].pillAlarm.done = True  # 복용 여부 True로 설정
                     # 표 업데이트
                     getValue[5] = True
                     self.user_info_table.item(selectedUser, values=getValue)
@@ -150,7 +162,7 @@ class StartPage(tk.Frame):
 
         # 표에 데이터 삽입
         for i in range(len(info_list)):
-            self.user_info_table.insert('', 'end', text=i + 1, values=info_list[i])
+            self.user_info_table.insert('', 'end', text=str(i + 1), values=info_list[i], iid=str(i))
 
         self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
         self.user_info_table.pack()
@@ -287,8 +299,7 @@ class AlarmCheck(tk.Frame):
     # 사용자 보여주기
     def addUser(self):
         # 표에 삽입될 데이터
-        new_user_info = (new_user.username, new_user.pillAlarm.pillname, new_user.pillAlarm.pill_cnt,
-                         new_user.pillAlarm.alarm.alarm_time, new_user.pillAlarm.alarm.sleep_time, new_user.pillAlarm.done)
+        new_user_info = getInfoTuple(new_user)
         info_list.append(new_user_info)
         user_list.append(new_user)
         StartPage.update_user(self.controller.frames["StartPage"], new_user_info)
@@ -325,7 +336,7 @@ class AlarmCheck(tk.Frame):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # 초기 사용자 설정
-    user1_alarm = AlarmInfo("19", "24", "23", "30")
+    user1_alarm = AlarmInfo("21", "41", "21", "42")
     user1_pill_info = PillInfo("빈혈약", 1, 1)
     user1_pill_info.setAlarm(user1_alarm)
     user1 = UserInfo(1, "이연수", user1_pill_info)
