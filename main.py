@@ -12,6 +12,8 @@ global user_cnt
 user_cnt = 1
 global pill_info
 global new_user
+global user_time
+user_time = "16:09:00"
 info_list = []
 
 
@@ -54,7 +56,6 @@ class DispenserApp(tk.Tk):
 
 # 스택으로 쌓아서 보여줄 프레임 클래스들
 
-
 # 1. 시계 프레임
 class StartPage(tk.Frame):
 
@@ -64,6 +65,51 @@ class StartPage(tk.Frame):
         now = time.strftime("%H:%M:%S")
         self.clock_width.config(text=now)
         self.clock_width.after(1000, self.clock)  # .after(지연시간{ms}, 실행함수)
+
+        for i in range(len(user_list)):
+            user = user_list[i]
+            print(user.username, user.pillAlarm.done)
+            if user.pillAlarm.done:
+                pass
+            else:
+                if user.pillAlarm.alarm.alarm_time == now:
+                    global flag
+                    flag = True
+                    msg = "현재 시각 : " + now + "\n" + user.username +" 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!"
+                    result = tk.messagebox.askyesno("알람 울리기", msg)
+                    if result:
+                        # 약 복용
+                        print("약 복용")
+                    else:
+                        # 약 복용 미루기
+                        print("약 복용 미루기")
+                else:
+                    flag = False
+
+        # for i in info_list:
+        #     user_name = i[0]
+        #     alarm_time = i[3]
+        #     sleep_time = i[4]
+        #     print(i)
+        #
+        #     # 약을 아직 복용하지 않았다면 알람 울리기
+        #     if i[5]:
+        #         pass
+        #     else:
+        #         if i[3] == now:
+        #             # global flag
+        #             # flag = True
+        #             msg = "현재 시각 : " + now + "\n" + user_name+" 님 " + i[1] + " 복용하실 시간입니다!"
+        #             result = tk.messagebox.askyesno("알람 울리기", msg)
+        #             if result:
+        #                 # 약 복용
+        #                 print("약 복용")
+        #             else:
+        #                 # 약 복용 미루기
+        #                 print("약 복용 미루기")
+        #         else:
+        #             pass
+        #             # flag = False
 
     def update_user(self, user_info):
         self.user_info_table.insert('', 'end', text=user_cnt, values=user_info)
@@ -76,7 +122,7 @@ class StartPage(tk.Frame):
         if result:
             for i in range(len(user_list)):
                 if user_list[i].username == getValue[0]:
-                    user_list[i].done = True    # 복용 여부 True로 설정
+                    user_list[i].pillAlarm.done = True    # 복용 여부 True로 설정
                     # 표 업데이트
                     getValue[5] = True
                     self.user_info_table.item(selectedUser, values=getValue)
@@ -251,8 +297,6 @@ class AlarmSetting(tk.Frame):
 class AlarmCheck(tk.Frame):
 
     def getAlarmInfo(self, pillInfo):
-        # alarm_time = pillInfo.alarm.alarm_hr + ":" + pillInfo.alarm.alarm_mn
-        # sleep_time = pillInfo.alarm.sleep_hr + ":" + pillInfo.alarm.sleep_mn
         self.alarm_time.config(text=pillInfo.alarm.alarm_time)
         self.sleep_time.config(text=pillInfo.alarm.sleep_time)
 
@@ -299,7 +343,7 @@ class AlarmCheck(tk.Frame):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    user1_alarm = AlarmInfo("20", "00", "23", "30")
+    user1_alarm = AlarmInfo("16", "36", "23", "30")
     user1_pill_info = PillInfo("빈혈약", 1, 1)
     user1_pill_info.setAlarm(user1_alarm)
     user1 = UserInfo(1, "이연수", user1_pill_info)

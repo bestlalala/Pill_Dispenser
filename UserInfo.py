@@ -38,12 +38,8 @@ class PillInfo:
 
 class AlarmInfo:
     def __init__(self, alarm_hr, alarm_mn, sleep_hr, sleep_mn):
-        # self.alarm_hr = alarm_hr
-        # self.alarm_mn = alarm_mn
-        # self.sleep_hr = sleep_hr
-        # self.sleep_mn = sleep_mn
-        self.alarm_time = alarm_hr + ":" + alarm_mn
-        self.sleep_time = sleep_hr + ":" + sleep_mn
+        self.alarm_time = alarm_hr + ":" + alarm_mn + ":00"
+        self.sleep_time = sleep_hr + ":" + sleep_mn + ":00"
         print("----알람 생성 완료----")
         print("알람 시간: ", self.alarm_time)
         print("취침 시간: ", self.sleep_time)
