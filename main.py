@@ -5,6 +5,7 @@ import tkinter.messagebox
 from threading import *
 from BackgroundTask import *
 
+from Yaknawa2 import *
 from UserInfo import *
 
 global now
@@ -14,7 +15,6 @@ user_cnt = 1
 global pill_info
 global new_user
 global user_time
-user_time = "16:09:00"
 info_list = []
 
 
@@ -57,6 +57,7 @@ class DispenserApp(tk.Tk):
 
 # 스택으로 쌓아서 보여줄 프레임 클래스들
 
+
 def getInfoTuple(user):
     user_info = (user.username, user.pillAlarm.pillname, user.pillAlarm.pill_cnt,
                  user.pillAlarm.alarm.alarm_time, user.pillAlarm.alarm.sleep_time,
@@ -76,42 +77,41 @@ class StartPage(tk.Frame):
 
         for i in range(len(user_list)):
             user = user_list[i]
-            print(user.username, user.pillAlarm.done)
             if user.pillAlarm.done:
                 pass
             else:
                 if user.pillAlarm.alarm.alarm_time == now:
-                    global flag
-                    flag = True
-                    alarm_condition.wait(10)
-                    msg = "현재 시각 : " + now + "\n" + user.username + " 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!"
-                    alarm_condition.wait(10)
-                    result = tk.messagebox.askyesno("알람 울리기", msg)
+                    msg = "Now : " + now + "\n" + user.username + \
+                          ", It's time to take your medicine:" + user.pillAlarm.pillname
+                    alarm_condition.wait()
+                    result = tk.messagebox.askyesno("Alarm", msg)
+                    print(result)
                     alarm_condition.release()
                     if result:
                         # 약 복용
-                        print("약 복용")
+                        print("take medicine")
+                        setting_prox(user.pillAlarm.pill_cnt)  # 근접 센서 활성화
                         user.pillAlarm.done = True
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
-                        prox_condition.wait()
-                        prox_condition.release()
+                        # prox_condition.wait()
+                        # prox_condition.release()
 
                 elif user.pillAlarm.alarm.sleep_time == now:
-                    msg = "현재 시각 : " + now + "\n" + user.username + " 님 " + user.pillAlarm.pillname + " 복용하실 시간입니다!\n주무시기 전에 드세요."
-                    result = tk.messagebox.askyesno("알람 울리기", msg)
+                    msg = "Now : " + now + "\n" + user.username + \
+                          ", It's time to take your medicine:" + user.pillAlarm.pillname
+                    result = tk.messagebox.askyesno("Alarm", msg)
                     alarm_condition.release()
                     if result:
                         # 약 복용
-                        print("잠자기 전 약 복용")
+                        print("Take a medicine before you sleep")
+                        setting_prox(user.pillAlarm.pill_cnt)
                         user.pillAlarm.done = True
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
-                        prox_condition.wait()
-                        prox_condition.release()
+                        # prox_condition.wait()
+                        # prox_condition.release()
 
-                else:
-                    flag = False
                 alarm_condition.acquire()
-                prox_condition.acquire()
+                # prox_condition.acquire()
 
     def update_user(self, user_info):
         self.user_info_table.insert('', 'end', text=str(user_cnt), values=user_info, iid=str(user_cnt - 1))
@@ -119,21 +119,24 @@ class StartPage(tk.Frame):
     def click_user(self, event):
         selectedUser = self.user_info_table.focus()
         getValue = self.user_info_table.item(selectedUser).get('values')
-        msg = getValue[0] + " 님의 " + getValue[1] + " 복용 시간은\n" + getValue[3] + " 입니다.\n" + "지금 바로 복용하고 알람을 끄시겠습니까?"
-        result = tk.messagebox.askokcancel("약 복용- 알람 시간 아닐 때", msg)
+        msg = getValue[0] + ", it is " + getValue[3] + " when you take your medicine(" + getValue[1] + ")\n" \
+              + "Do you want to take it right now and turn off the alarm?"
+        result = tk.messagebox.askokcancel("Take your medicine - not alarm time", msg)
         if result:
             for i in range(len(user_list)):
                 if user_list[i].username == getValue[0]:
+                    setting_prox(user_list[i].pillAlarm.pill_cnt)  # 근접 센서 활성화
                     user_list[i].pillAlarm.done = True  # 복용 여부 True로 설정
                     # 표 업데이트
                     getValue[5] = True
                     self.user_info_table.item(selectedUser, values=getValue)
-            print("예: 알람 취소, 근접 센서 활성화")
-            prox_condition.wait()
-            prox_condition.release()
+                    print("yes: activate prox")
+
+            # prox_condition.wait()
+            # prox_condition.release()
 
         else:
-            print("아니오: 취소")
+            print("No: cancel")
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -151,22 +154,22 @@ class StartPage(tk.Frame):
         self.user_info_table.heading("#0", text="index")
 
         self.user_info_table.column("#1", width=100, anchor="center")
-        self.user_info_table.heading("#1", text="사용자 이름")
+        self.user_info_table.heading("#1", text="User Name")
 
         self.user_info_table.column("#2", width=100, anchor="center")
-        self.user_info_table.heading("#2", text="약 이름")
+        self.user_info_table.heading("#2", text="Pill Name")
 
         self.user_info_table.column("#3", width=50, anchor="center")
-        self.user_info_table.heading("#3", text="복용 개수")
+        self.user_info_table.heading("#3", text="dose")
 
         self.user_info_table.column("#4", width=70, anchor="center")
-        self.user_info_table.heading("#4", text="알람 시간")
+        self.user_info_table.heading("#4", text="Alarm")
 
         self.user_info_table.column("#5", width=70, anchor="center")
-        self.user_info_table.heading("#5", text="취침 시간")
+        self.user_info_table.heading("#5", text="Sleep")
 
         self.user_info_table.column("#6", width=70, anchor="center")
-        self.user_info_table.heading("#6", text="복용 여부")
+        self.user_info_table.heading("#6", text="")
 
         # 표에 데이터 삽입
         for i in range(len(info_list)):
@@ -178,7 +181,7 @@ class StartPage(tk.Frame):
         # activate_btn = tk.Button(self, text="약이 제대로 안 나왔나요?", width=100, height=50)
         # activate_btn.pack()
 
-        start_btn = tk.Button(self, text="사용자 추가", overrelief="solid", width=10,
+        start_btn = tk.Button(self, text="Add User", overrelief="solid", width=10,
                               command=lambda: controller.show_frame("UserSetting"))
         start_btn.pack()
 
@@ -199,12 +202,12 @@ class UserSetting(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.name_label = tk.Label(self, text="사용자 이름: ")
+        self.name_label = tk.Label(self, text="user name: ")
         self.name_label.grid(row=0, column=0)
         self.name_input = tk.Entry(self, width=50)
         self.name_input.grid(row=0, column=1, columnspan=2, sticky='ew')
 
-        self.pill_label = tk.Label(self, text="복용할 약 이름: ")
+        self.pill_label = tk.Label(self, text="pill name: ")
         self.pill_label.grid(row=1, column=0)
 
         # 약 이름 입력받기
@@ -212,7 +215,7 @@ class UserSetting(tk.Frame):
         self.pill_name_input.grid(row=1, column=1, columnspan=2)
 
         # 약통 선택
-        bottle_label = tk.Label(self, text="약통 선택: ")
+        bottle_label = tk.Label(self, text="select bottle: ")
         bottle_label.grid(row=2, column=0)
 
         self.radio = tk.IntVar(self)
@@ -222,18 +225,18 @@ class UserSetting(tk.Frame):
         self.two.grid(row=2, column=2)
 
         # 약 복용량 입력
-        self.pill_cnt_label = tk.Label(self, text="1회 복용량: ")
+        self.pill_cnt_label = tk.Label(self, text="dose: ")
         self.pill_cnt_label.grid(row=3, column=0)
         self.pill_cnt = tk.Spinbox(self, from_=1, to=5)
         self.pill_cnt.grid(row=3, column=1, columnspan=2)
 
         # 이전 버튼
-        prev_btn = tk.Button(self, text="이전으로",
+        prev_btn = tk.Button(self, text="Prev",
                              command=lambda: controller.show_frame("StartPage"))
         prev_btn.grid(row=7, column=0)
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="다음으로", command=self.create_user)
+        next_btn = tk.Button(self, text="Next", command=self.create_user)
         next_btn.grid(row=7, column=2)
 
 
@@ -244,17 +247,17 @@ class PutPill(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label_text = "1번 통에 약을 넣고\n 확인 버튼을 눌러주세요!"
+        label_text = "Put your medicine to bottle 1\n and press the button."
         self.label = tk.Label(self, text=label_text)
         self.label.pack()
 
         # 이전 버튼
-        prev_btn = tk.Button(self, text="취소",
+        prev_btn = tk.Button(self, text="Cancel",
                              command=lambda: controller.show_frame("UserSetting"))
         prev_btn.pack(side="bottom", anchor="w")
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="확인",
+        next_btn = tk.Button(self, text="OK",
                              command=lambda: controller.show_frame("AlarmSetting"))
         next_btn.pack(side="bottom", anchor="e")
 
@@ -272,7 +275,7 @@ class AlarmSetting(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.label = tk.Label(self, text="알람 시간을 입력하세요.")
+        self.label = tk.Label(self, text="Enter your alarm time.")
         self.label.grid(row=0, column=0, columnspan=4)
 
         # 알람 시간 입력
@@ -281,7 +284,7 @@ class AlarmSetting(tk.Frame):
         self.alarm_mn = tk.Spinbox(self, from_=0, to=59, width=10, format='%02.0f')
         self.alarm_mn.grid(row=1, column=1)
 
-        self.alarm_time_label = tk.Label(self, text="알람 시간")
+        self.alarm_time_label = tk.Label(self, text="Alarm time")
         self.alarm_time_label.grid(row=2, column=0, columnspan=2)
 
         self.sleep_hr = tk.Spinbox(self, from_=0, to=23, width=10, format="%02.0f")
@@ -289,11 +292,11 @@ class AlarmSetting(tk.Frame):
         self.sleep_mn = tk.Spinbox(self, from_=0, to=59, width=10, format="%02.0f")
         self.sleep_mn.grid(row=1, column=4)
 
-        self.sleep_time_label = tk.Label(self, text="취침 시간")
+        self.sleep_time_label = tk.Label(self, text="Sleep time")
         self.sleep_time_label.grid(row=2, column=2, columnspan=2)
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="다음으로", command=self.setAlarm)
+        next_btn = tk.Button(self, text="Next", command=self.setAlarm)
         next_btn.place(x=600, y=300)
 
 
@@ -317,7 +320,7 @@ class AlarmCheck(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        self.label = tk.Label(self, text="입력한 정보를 확인하세요.")
+        self.label = tk.Label(self, text="Check your information")
         self.label.grid(row=0, column=0, columnspan=4)
 
         # 알람 시간 입력
@@ -325,46 +328,47 @@ class AlarmCheck(tk.Frame):
         sleep_time = "00:00"
         self.alarm_time = tk.Label(self, text=alarm_time)
         self.alarm_time.grid(row=1, column=0)
-        self.alarm_time_label = tk.Label(self, text="알람 시간")
+        self.alarm_time_label = tk.Label(self, text="Alarm time")
         self.alarm_time_label.grid(row=2, column=0)
 
         self.sleep_time = tk.Label(self, text=sleep_time)
         self.sleep_time.grid(row=1, column=1)
-        self.sleep_time_label = tk.Label(self, text="취침 시간")
+        self.sleep_time_label = tk.Label(self, text="Sleep time")
         self.sleep_time_label.grid(row=2, column=1)
 
-        self.label2 = tk.Label(self, text="알람 설정 완료!\n복용 시간이 되면 알려드릴게요:)")
+        self.label2 = tk.Label(self, text="Done!\nI'll let you know when it's time to take it:)")
         self.label2.grid(row=3, column=0, columnspan=2)
 
         # 다음 버튼
-        next_btn = tk.Button(self, text="확인", command=self.addUser)
+        next_btn = tk.Button(self, text="OK", command=self.addUser)
         next_btn.place(x=600, y=300)
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # 초기 사용자 설정
-    user1_alarm = AlarmInfo("22", "14", "22", "11")
-    user1_pill_info = PillInfo("빈혈약", 1, 1)
+    user1_alarm = AlarmInfo("04", "22", "04", "23")
+    user1_pill_info = PillInfo("vitamin", 1, 2)
     user1_pill_info.setAlarm(user1_alarm)
-    user1 = UserInfo(1, "이연수", user1_pill_info)
+    user1 = UserInfo(1, "yeonsu", user1_pill_info)
     user_list.append(user1)
     info_list.append((user1.username, user1.pillAlarm.pillname, user1.pillAlarm.pill_cnt,
                       user1.pillAlarm.alarm.alarm_time, user1.pillAlarm.alarm.sleep_time, user1.pillAlarm.done))
 
+
     # 조건 객체 생성
     alarm_condition = Condition()   # 알람 울리기
-    prox_condition = Condition()    # 근접 센서 활성화
+    # prox_condition = Condition()    # 근접 센서 활성화
 
     # 스레드 생성
     thread1_alarm = Thread(target=alarm_start, args=(alarm_condition,), daemon=True)
-    thread2_prox = Thread(target=activate_prox, args=(prox_condition,), daemon=True)
+    # thread2_prox = Thread(target=activate_prox, args=(prox_condition, 1), daemon=True)
 
     alarm_condition.acquire()
-    prox_condition.acquire()
+    # prox_condition.acquire()
 
     thread1_alarm.start()
-    thread2_prox.start()
+    # thread2_prox.start()
 
     app = DispenserApp()
 
