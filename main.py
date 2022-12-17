@@ -79,6 +79,8 @@ class StartPage(tk.Frame):
 
         for i in range(len(user_list)):
             user = user_list[i]
+            if now == "00:00":
+                user.pillAlarm.done = False
             if user.pillAlarm.done:
                 pass
             else:
@@ -172,7 +174,7 @@ class StartPage(tk.Frame):
         self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
         self.user_info_table.pack()
 
-        activate_btn = tk.Button(self, text="약이 제대로 안 나왔나요?", width=100, height=50,
+        activate_btn = tk.Button(self, text="Retry", width=10,
                                  command=lambda: setting_prox(1))
         activate_btn.pack(side='bottom')
 
