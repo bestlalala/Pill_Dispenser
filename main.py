@@ -174,11 +174,11 @@ class StartPage(tk.Frame):
 
         activate_btn = tk.Button(self, text="약이 제대로 안 나왔나요?", width=100, height=50,
                                  command=lambda: setting_prox(1))
-        activate_btn.pack()
+        activate_btn.pack(side='bottom')
 
         start_btn = tk.Button(self, text="Add User", overrelief="solid", width=10,
                               command=lambda: controller.show_frame("UserSetting"))
-        start_btn.pack()
+        start_btn.pack(side='right')
 
 
 # 2. 사용자 초기 설정 프레임
