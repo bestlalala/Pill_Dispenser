@@ -93,8 +93,6 @@ class StartPage(tk.Frame):
                         setting_prox(user.pillAlarm.pill_cnt)  # 근접 센서 활성화
                         user.pillAlarm.done = True
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
-                        # prox_condition.wait()
-                        # prox_condition.release()
 
                 elif user.pillAlarm.alarm.sleep_time == now:
                     msg = "Now : " + now + "\n" + user.username + \
@@ -107,11 +105,8 @@ class StartPage(tk.Frame):
                         setting_prox(user.pillAlarm.pill_cnt)
                         user.pillAlarm.done = True
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
-                        # prox_condition.wait()
-                        # prox_condition.release()
 
                 alarm_condition.acquire()
-                # prox_condition.acquire()
 
     def update_user(self, user_info):
         self.user_info_table.insert('', 'end', text=str(user_cnt), values=user_info, iid=str(user_cnt - 1))
@@ -120,7 +115,7 @@ class StartPage(tk.Frame):
         selectedUser = self.user_info_table.focus()
         getValue = self.user_info_table.item(selectedUser).get('values')
         msg = getValue[0] + ", it is " + getValue[3] + " when you take your medicine(" + getValue[1] + ")\n" \
-              + "Do you want to take it right now and turn off the alarm?"
+            + "Do you want to take it right now and turn off the alarm? "
         result = tk.messagebox.askokcancel("Take your medicine - not alarm time", msg)
         if result:
             for i in range(len(user_list)):
@@ -131,10 +126,6 @@ class StartPage(tk.Frame):
                     getValue[5] = True
                     self.user_info_table.item(selectedUser, values=getValue)
                     print("yes: activate prox")
-
-            # prox_condition.wait()
-            # prox_condition.release()
-
         else:
             print("No: cancel")
 
@@ -147,8 +138,9 @@ class StartPage(tk.Frame):
         self.clock()
         self.clock_width.pack(side="top", padx=10, pady=10)
 
-        self.user_info_table = tk.ttk.Treeview(self, columns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간", "복용 여부"],
-                                               displaycolumns=["사용자이름", "약 이름", "복용 개수", "알람 시간", "취침 시간", "복용 여부"])
+        self.user_info_table = tk.ttk.Treeview(self,
+                                               columns=["User name", "Pill name", "Dosage", "Alarm", "Sleep", "Done"],
+                                               displaycolumns=["User name", "Pill name", "Dosage", "Alarm", "Sleep", "Done"])
 
         self.user_info_table.column("#0", width=50, anchor="center")
         self.user_info_table.heading("#0", text="index")
@@ -219,9 +211,9 @@ class UserSetting(tk.Frame):
         bottle_label.grid(row=2, column=0)
 
         self.radio = tk.IntVar(self)
-        self.one = tk.Radiobutton(self, text="1번", variable=self.radio, value=1)
+        self.one = tk.Radiobutton(self, text="Bottle_1", variable=self.radio, value=1)
         self.one.grid(row=2, column=1)
-        self.two = tk.Radiobutton(self, text="2번", variable=self.radio, value=2)
+        self.two = tk.Radiobutton(self, text="Bottle_2", variable=self.radio, value=2)
         self.two.grid(row=2, column=2)
 
         # 약 복용량 입력
@@ -358,17 +350,11 @@ if __name__ == '__main__':
 
     # 조건 객체 생성
     alarm_condition = Condition()   # 알람 울리기
-    # prox_condition = Condition()    # 근접 센서 활성화
 
     # 스레드 생성
     thread1_alarm = Thread(target=alarm_start, args=(alarm_condition,), daemon=True)
-    # thread2_prox = Thread(target=activate_prox, args=(prox_condition, 1), daemon=True)
-
     alarm_condition.acquire()
-    # prox_condition.acquire()
-
     thread1_alarm.start()
-    # thread2_prox.start()
 
     app = DispenserApp()
 
