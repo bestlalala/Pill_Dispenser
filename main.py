@@ -2,14 +2,10 @@ import tkinter as tk
 import tkinter.ttk
 import tkinter.messagebox
 
-from threading import *
-from BackgroundTask import *
-
-from Yaknawa2 import *
 from UserInfo import *
+from GPIO_setup import *
 
 global now
-global bottle_num
 global user_cnt
 user_cnt = 1
 global pill_info
@@ -24,11 +20,11 @@ class DispenserApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        self.attributes('-zoomed', True)    # 리눅스, 우분투 전체화면 설정
-        # self.attributes('-fullscreen', True)    # 윈도우 전체화면 설정
+        # self.attributes('-zoomed', True)  # 리눅스, 우분투 전체화면 설정
+        self.attributes('-fullscreen', True)    # 윈도우 전체화면 설정
         self.title("Pill Dispenser")
-        self.geometry("750x500")
-        self.resizable(False, False)
+        # self.geometry("750x500")
+        self.resizable(True, True)
 
         # 가장 기본적인 화면으로 container라는 이름으로 기본 프레임 선언.
         # 이 기본 프레임 위에 다른 프레임들이 쌓임
@@ -76,41 +72,49 @@ class StartPage(tk.Frame):
         now = time.strftime("%H:%M:%S")
         self.clock_width.config(text=now)
         self.clock_width.after(1000, self.clock)  # .after(지연시간{ms}, 실행함수)
+        # 0시 되면 초기화
+        if now == "00:00:00":
+            # 복용 여부가 No인 사용자 출력
+            didnt = ""
+            for i in range(len(user_list)):
+                user = user_list[i]
+                if user.pillAlarm.done == "No":
+                    didnt = didnt + user.username + " "
+                user.pillAlarm.done = "No"
+                self.user_info_table.item(str(i), values=getInfoTuple(user))
+            didnt = didnt + "\nDon't forget to take your medicine today! :)"
+            self.msg_label.config(text=didnt)
+
 
         for i in range(len(user_list)):
             user = user_list[i]
-            if now == "00:00":
-                user.pillAlarm.done = False
-            if user.pillAlarm.done:
-                pass
-            else:
+            # 복용 여부가 No 일 때
+            if user.pillAlarm.done == "No":
                 if user.pillAlarm.alarm.alarm_time == now:
                     msg = "Now : " + now + "\n" + user.username + \
                           ", It's time to take your medicine:" + user.pillAlarm.pillname
-                    alarm_condition.wait()
+                    alarm_play(user.id)
                     result = tk.messagebox.askyesno("Alarm", msg)
                     print(result)
-                    alarm_condition.release()
                     if result:
                         # 약 복용
                         print("take medicine")
-                        setting_prox(user.pillAlarm.pill_cnt)  # 근접 센서 활성화
-                        user.pillAlarm.done = True
+                        setting_prox(int(user.pillAlarm.pill_cnt))  # 근접 센서 활성화
+                        user.pillAlarm.done = "Yes"
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
 
                 elif user.pillAlarm.alarm.sleep_time == now:
                     msg = "Now : " + now + "\n" + user.username + \
                           ", It's time to take your medicine:" + user.pillAlarm.pillname
+                    alarm_play(user.id)
                     result = tk.messagebox.askyesno("Alarm", msg)
-                    alarm_condition.release()
                     if result:
                         # 약 복용
                         print("Take a medicine before you sleep")
-                        setting_prox(user.pillAlarm.pill_cnt)
-                        user.pillAlarm.done = True
+                        setting_prox(int(user.pillAlarm.pill_cnt))
+                        user.pillAlarm.done = "Yes"
                         self.user_info_table.item(str(i), values=getInfoTuple(user))
 
-                alarm_condition.acquire()
 
     def update_user(self, user_info):
         self.user_info_table.insert('', 'end', text=str(user_cnt), values=user_info, iid=str(user_cnt - 1))
@@ -119,17 +123,26 @@ class StartPage(tk.Frame):
         selectedUser = self.user_info_table.focus()
         getValue = self.user_info_table.item(selectedUser).get('values')
         msg = getValue[0] + ", it is " + getValue[3] + " when you take your medicine(" + getValue[1] + ")\n" \
-            + "Do you want to take it right now and turn off the alarm? "
+              + "Do you want to take it right now and turn off the alarm? "
         result = tk.messagebox.askokcancel("Take your medicine - not alarm time", msg)
         if result:
             for i in range(len(user_list)):
                 if user_list[i].username == getValue[0]:
-                    setting_prox(user_list[i].pillAlarm.pill_cnt)  # 근접 센서 활성화
-                    user_list[i].pillAlarm.done = True  # 복용 여부 True로 설정
+                    setting_prox(int(user_list[i].pillAlarm.pill_cnt))  # 근접 센서 활성화
+                    user_list[i].pillAlarm.done = "Yes"  # 복용 여부 True로 설정
                     # 표 업데이트
-                    getValue[5] = True
+                    getValue[5] = "Yes"
                     self.user_info_table.item(selectedUser, values=getValue)
                     print("yes: activate prox")
+        else:
+            print("No: cancel")
+
+    def direct_activate(self):
+        msg = "Do you want to get your medicine once again?"
+        result = tk.messagebox.askokcancel("Retry", msg)
+        if result:
+            print("yes: activate prox")
+            setting_prox(1)  # 근접 센서 활성화
         else:
             print("No: cancel")
 
@@ -140,14 +153,15 @@ class StartPage(tk.Frame):
 
         self.clock_width = tk.Label(self, font=("Times", 24, "bold"), text="")
         self.clock()
-        self.clock_width.pack(side="top", padx=10, pady=10)
+        self.clock_width.grid(row=0, column=0, columnspan=2, sticky='n')
 
         self.user_info_table = tk.ttk.Treeview(self,
                                                columns=["User name", "Pill name", "Dosage", "Alarm", "Sleep", "Done"],
-                                               displaycolumns=["User name", "Pill name", "Dosage", "Alarm", "Sleep", "Done"])
+                                               displaycolumns=["User name", "Pill name", "Dosage", "Alarm", "Sleep",
+                                                               "Done"])
 
         self.user_info_table.column("#0", width=50, anchor="center")
-        self.user_info_table.heading("#0", text="index")
+        self.user_info_table.heading("#0", text="Index")
 
         self.user_info_table.column("#1", width=100, anchor="center")
         self.user_info_table.heading("#1", text="User Name")
@@ -156,7 +170,7 @@ class StartPage(tk.Frame):
         self.user_info_table.heading("#2", text="Pill Name")
 
         self.user_info_table.column("#3", width=50, anchor="center")
-        self.user_info_table.heading("#3", text="dose")
+        self.user_info_table.heading("#3", text="Dose")
 
         self.user_info_table.column("#4", width=70, anchor="center")
         self.user_info_table.heading("#4", text="Alarm")
@@ -165,22 +179,25 @@ class StartPage(tk.Frame):
         self.user_info_table.heading("#5", text="Sleep")
 
         self.user_info_table.column("#6", width=70, anchor="center")
-        self.user_info_table.heading("#6", text="")
+        self.user_info_table.heading("#6", text="Done")
 
         # 표에 데이터 삽입
         for i in range(len(info_list)):
             self.user_info_table.insert('', 'end', text=str(i + 1), values=info_list[i], iid=str(i))
 
         self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
-        self.user_info_table.pack()
+        self.user_info_table.grid(row=1, column=0, columnspan=2, sticky='ew')
 
-        activate_btn = tk.Button(self, text="Retry", width=10,
-                                 command=lambda: setting_prox(1))
-        activate_btn.pack(side='bottom')
+        self.msg_label = tk.Label(self, text="Have a nice day!\nDon't forget to take your medicine on time")
+        self.msg_label.grid(row=2, column=0, columnspan=2, sticky='ew')
+
+        activate_btn = tk.Button(self, text="One More", overrelief="solid", width=10,
+                                 command=self.direct_activate)
+        activate_btn.grid(row=3, column=0, sticky="sw")
 
         start_btn = tk.Button(self, text="Add User", overrelief="solid", width=10,
                               command=lambda: controller.show_frame("UserSetting"))
-        start_btn.pack(side='right')
+        start_btn.grid(row=3, column=1, sticky="se")
 
 
 # 2. 사용자 초기 설정 프레임
@@ -193,6 +210,8 @@ class UserSetting(tk.Frame):
         pill_info = PillInfo(self.pill_name_input.get(), self.radio.get(), self.pill_cnt.get())
         user_cnt += 1
         new_user = UserInfo(user_cnt, self.name_input.get(), pill_info)
+        label_text = "Put your medicine to " + str(new_user.pillAlarm.bottle_num) + "\n and press the button."
+        self.controller.frames["PutPill"].label.config(text=label_text)
         self.controller.show_frame("PutPill")
 
     def __init__(self, parent, controller):
@@ -244,7 +263,7 @@ class PutPill(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        label_text = "Put your medicine to bottle 1\n and press the button."
+        label_text = "Put your medicine to bottle_1\n and press the button."
         self.label = tk.Label(self, text=label_text)
         self.label.pack()
 
@@ -344,22 +363,20 @@ class AlarmCheck(tk.Frame):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # 초기 사용자 설정
-    user1_alarm = AlarmInfo("04", "22", "04", "23")
-    user1_pill_info = PillInfo("vitamin", 1, 2)
+    user1_alarm = AlarmInfo("23", "07", "23", "30")
+    user1_pill_info = PillInfo("vitamin", 1, 1)
     user1_pill_info.setAlarm(user1_alarm)
     user1 = UserInfo(1, "yeonsu", user1_pill_info)
     user_list.append(user1)
-    info_list.append((user1.username, user1.pillAlarm.pillname, user1.pillAlarm.pill_cnt,
-                      user1.pillAlarm.alarm.alarm_time, user1.pillAlarm.alarm.sleep_time, user1.pillAlarm.done))
+    info_list.append(getInfoTuple(user1))
 
-
-    # 조건 객체 생성
-    alarm_condition = Condition()   # 알람 울리기
-
-    # 스레드 생성
-    thread1_alarm = Thread(target=alarm_start, args=(alarm_condition,), daemon=True)
-    alarm_condition.acquire()
-    thread1_alarm.start()
+    #2
+    user2_alarm = AlarmInfo("23", "40", "23", "50")
+    user2_pill_info = PillInfo("omega-3", 1, 2)
+    user2_pill_info.setAlarm(user2_alarm)
+    user2 = UserInfo(1, "yewon", user2_pill_info)
+    user_list.append(user2)
+    info_list.append(getInfoTuple(user2))
 
     app = DispenserApp()
 
