@@ -24,6 +24,8 @@ class DispenserApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
+        self.attributes('-zoomed', True)    # 리눅스, 우분투 전체화면 설정
+        # self.attributes('-fullscreen', True)    # 윈도우 전체화면 설정
         self.title("Pill Dispenser")
         self.geometry("750x500")
         self.resizable(False, False)
@@ -170,8 +172,9 @@ class StartPage(tk.Frame):
         self.user_info_table.bind('<ButtonRelease-1>', self.click_user)
         self.user_info_table.pack()
 
-        # activate_btn = tk.Button(self, text="약이 제대로 안 나왔나요?", width=100, height=50)
-        # activate_btn.pack()
+        activate_btn = tk.Button(self, text="약이 제대로 안 나왔나요?", width=100, height=50,
+                                 command=lambda: setting_prox(1))
+        activate_btn.pack()
 
         start_btn = tk.Button(self, text="Add User", overrelief="solid", width=10,
                               command=lambda: controller.show_frame("UserSetting"))
